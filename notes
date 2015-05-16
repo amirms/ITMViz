@@ -1,0 +1,40 @@
+intLDA.h
+
+//counts
+c -> nd: IntegerMatrix
+
+//states:
+findsamp = zsamp = init = zinit = List of Lists
+qsamp = qinit = NumericMatrix
+
+//edges
+edges= NONE by convention
+
+//variants
+variants is a list of tuple list(dtnode, leafmap)
+
+//leafmap
+leafmap is a numericVector not a list
+
+TODO Items:
+1) May need to change List variants to type vector<node*>! May require populating the items 
+
+DONE 2)  Calculate log of weighing term (for y-sampling) in multinode.cpp has to be fixed
+
+3) Fix variants in multi_node: there should be two copies or not? may be just add a method to add elements to variants. sounds like a better option!
+
+4) Fix the destructors - make sure data gets deleted in R
+
+DONE 5) Re-implement min and sum functions in C++
+
+6) Garbage collection for C++ objects created in R through calling their relevant destructors
+
+7) Implement a function in node class for cloning objects
+
+8) Throw C++ exception to R for handling
+
+DONE 9) implement min and sum functions in R
+
+10) How to delete R-given objects from C++, say when you call the destructors
+
+DONE 11) Fix the indices of maxind, leafstart and leafmap, to ensure they are consistent with R indexing, while when used in C++, -1 is taken from them

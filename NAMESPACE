@@ -1,0 +1,4 @@
+useDynLib(ITMViz)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)
+importFrom(Rcpp, loadModule)

@@ -1,0 +1,5 @@
+## Use the R_HOME indirection to support installations of multiple R version
+##PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "Rcpp:::LdFlags()")
+##PKG_LIBS+= -lRcpp
+##PKG_LIBS+= -LC:/Users/Saeid001/Documents/R/win-library/3.0/Rcpp/libs/i386
+PKG_CPPFLAGS = -I../inst/include
