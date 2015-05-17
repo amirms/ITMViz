@@ -11,13 +11,14 @@ library(MASS)
 library(proxy)
 library(plyr)
 library(reshape2)
-library(ggvis)
+# library(ggvis)
 library(dplyr)
-library(googleCharts)
+# library(googleCharts)
 # library(shinyIncubator)
 library(wordcloud)
 library(memoise)
-library(googleVis)
+# library(googleVis)
+library(ITM)
 
 palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
           "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
@@ -30,21 +31,22 @@ palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
 shinyServer(function(input, output, session) {
   
   #Init
-#   K = 15
-#   #   alpha = 50 / K
-#   alpha = 0.5
-#   beta = .1
-#   eta = 10000 
-#   # eta = 1000
-#   
-#   mystate <- ldaState(alpha = alpha, beta = beta, eta = eta, K = K)
-#   
-#   mystate$prname= "jedit-5.1.0"
-#   # mystate$prname= "jdom-2.0.5"
-#   mystate$min.tfidf = 25
-#   #mystate$numsamp =200
-#   mystate$numsamp =30
-#   mystate$randseed = 821945
+  K = 15
+  #   alpha = 50 / K
+  alpha = 0.5
+  beta = .1
+  eta = 10000 
+  # eta = 1000
+  
+  mystate <- ldaState(alpha = alpha, beta = beta, eta = eta, K = K)
+  
+  mystate$prname= "jedit-5.1.0"
+  # mystate$prname= "jdom-2.0.5"
+  mystate$min.tfidf = 25
+  #mystate$numsamp =200
+  mystate$numsamp =50
+  mystate$randseed = 821945
+
 #   
 #   mystate <- fit.LDA(mystate)
 # #   
@@ -116,7 +118,10 @@ shinyServer(function(input, output, session) {
   
   #Output for Topic Visualization
   output$mdsDat <- reactive({
-#     mystate <- computeInput()
+    withProgress(message = 'Computing LDA',
+                 detail = 'This may take a while...', value = 0, {       
+                   compute_state()
+                 })
     ##############################################################################
     ### Create a df with the info neccessary to make the default OR new bar chart when selecting a topic or cluster.
     ### This functionality requires that we keep track of the top input$itm.nTerms within each cluster and topic (as well as overall).
@@ -248,8 +253,10 @@ shinyServer(function(input, output, session) {
   
   #Clustering output
   output$clsDat <- reactive({
-    print(dim(mystate$phi))
-    mystate <- computeInput()
+    withProgress(message = 'Computing LDA',
+                 detail = 'This may take a while...', value = 0, {       
+                   compute_state()
+                 })
     ##############################################################################
     ### Create a df with the info neccessary to make the default OR new bar chart when selecting a topic or cluster.
     ### This functionality requires that we keep track of the top input$itm.nTerms within each cluster and topic (as well as overall).
@@ -369,6 +376,7 @@ shinyServer(function(input, output, session) {
     doc.table <- reshape2::melt(d.t2, id.vars = "Topic", variable.name = "Document", value.name = "Freq")
     kmeans <- input$cls.kmeans
 	 # rownames(cls.df) <- paste0("Document", cls.df$docs) 
+  print(doc.table)
     return(list(clsDat = cls.df, clsDat2 = doc.table, topDat = all.df,
                 centers = centers, nClust = kmeans))
   })
@@ -550,18 +558,7 @@ observe({
 #   withProgress(message = 'Recomputing LDA', value = 0, {
 withProgress(message = 'Recomputing LDA',
              detail = 'This may take a while...', value = 0, {       
-    fit.LDA(mystate)
-    
-#     if (!is.null(mystate$constraints$conflicts)){
-# #       hasConflicts = TRUE
-# #       updateTextInput(session, "constrConflicts", value = mystate$constraints$conflicts)
-#     
-# output$constrConflicts <- renderText({
-#   #       print("reached here")
-#   unlist(lapply(mystate$constraints$conflicts, function(conflict) paste(conflict,collapse=" "))) #create dependency
-#   
-# })
-# }
+            compute_state()
        })
   
 })
@@ -573,67 +570,38 @@ withProgress(message = 'Recomputing LDA',
 # })
 
 
-computeInput <- reactive({
-  alpha <- input$alpha
-  beta = input$beta
-  eta = input$eta 
-  
-  mystate <- ldaState(alpha = alpha, beta = beta, eta = eta)
-  mystate$prname= "jedit-5.1.0"
-  mystate$min.tfidf = 25
-  mystate$numsamp = 30
-  mystate$randseed = 821945
-  
-  
-  mystate$K <- input$tc
-  
-  fit.LDA(mystate)
-})
-
-
 observe({
   if (input$fitLDA ==0)
     return()
-  
-#   #Set the dirty bit
-#   mystate$dirty <- TRUE
 
-#   alpha <- input$alpha
-#   beta = input$beta
-#   eta = input$eta 
-# 
-#   mystate <- ldaState(alpha = alpha, beta = beta, eta = eta)
-#   mystate$prname= "jedit-5.1.0"
-#   mystate$min.tfidf = 25
-#   mystate$numsamp = 30
-#   mystate$randseed = 821945
-# 
-# #   
-# #   updateMustLinkConstraints()
-# #   
-# #   updateCannotLinkConstraints()
-# #   
-# #   print(mystate$constraints)
-#   
-#   #Update the state
-#   
-# #   mystate$dirty <- TRUE
-#   
-#   mystate$K <- input$tc
-#   
-# mystate <- fit.LDA(mystate)
 
-computeInput()
+mystate$alpha <- input$alpha
+mystate$beta = input$beta
+mystate$eta = input$eta 
+mystate$K <- input$tc
+mystate$numsamp = input$ns
+mystate$randseed = 821945
 
-#   withProgress(message = 'Computing LDA',
-#     detail = 'This may take a while...', value = 0, {       
-#                mystate <- fit.LDA(mystate)
-#              })
-# 
-# print(mystate$phi)
+mystate$dirty <- TRUE
 
-  
+withProgress(message = 'Computing LDA',
+             detail = 'This may take a while...', value = 0, {       
+               compute_state()
+             })
 })
+
+
+compute_state <- function(){
+  if (is.null(mystate$phi) | isTRUE(mystate$dirty)) {
+    
+    fit.LDA(mystate)
+    print(mystate$labels)
+    updateSelectInput(session, "selectWords",  choices = as.list(mystate$vocab))
+    updateSelectInput(session, "topic.select",  choices = as.list(mystate$labels), selected = mystate$labels[1])
+
+  }
+  
+}
 
 observe({
   if (input$topic.updateLabel==0)
@@ -661,6 +629,10 @@ observe({
 wordcloud_rep <- repeatable(wordcloud)
 
 output$topic.count.plot <- renderPlot({
+  withProgress(message = 'Computing LDA',
+               detail = 'This may take a while...', value = 0, {       
+                 compute_state()
+               })
   #create a dependency on the update
   top <- input$topic.select
   

@@ -1,9 +1,9 @@
 #Input: docs = document-term matrix of class DocumentTermMatrix
 inference <- function(docs, numsamp, randseed){#,**kwargs){
-  require(gelatoViz)
+#   require(gelatoViz)
   require(Rcpp)
   require(inline)
-  require(gelato)
+  require(ITM)
   
   # Do inference via collapsed Gibbs sampling
   #,estimate phi/theta from final sample
@@ -13,7 +13,7 @@ inference <- function(docs, numsamp, randseed){#,**kwargs){
     #FIXME there is probably a way out of using this
 
     if (mystate$dt==NULL)
-      dt = Module("dt", getDynLib("gelatoViz"))
+      dt = Module("dt", getDynLib("ITM"))
     
     #Remving the previous state qinit and zinit
     mystate$qsamp = NULL
@@ -69,129 +69,12 @@ inference <- function(docs, numsamp, randseed){#,**kwargs){
    
 }
 
-
-fit.LDA <- function(mystate) {
-  
-  if (is.null(mystate$prname))
-    return()
-  
-  if(mystate$K <= 1)
-    return()
-  
-  #if this is the first iteration
-  if (mystate$curIterations == 0) {
-    #the min.tfidf must have been set in the constructor of mystate
-    
-    r <- read.dt(mystate$prname, mystate$min.tfidf)
-    
-  #   list(doclist=doclist, vocab = colnames(bow), docs=rownames(bow), 
-  #        term.frequency = colSums(bow), doc.term = rowSums(bow)))
-    
-    mystate$docs = r$docs
-    mystate$vocab = r$vocab
-    mystate$labels <- unlist(lapply(seq(mystate$K), function(c) paste("Topic", c, sep="")))
-    mystate$term.frequency = r$term.frequency
-    mystate$doc.term = r$doc.term
-    mystate$doc.names = r$doc.names
-  
-    mystate$N <- sum(mystate$term.frequency) 
-    mystate$rel.freq <- mystate$term.frequency/mystate$N
-  
-    mystate$W = length(r$vocab)
-    mystate$D = length(r$doc.names)
-
-  }
-  #check if the dt is already set
-  if (is.null(mystate$dt))
-    mystate$dt = Module("dt", getDynLib("gelatoViz"))
-  # Compile preferences, if we haven't already
-  if(is.null(mystate$root) || isTRUE(mystate$dirty)) {
-      mystate$f = rep(0, mystate$D)
-      
-      mystate$qsamp = NULL
-      mystate$zsamp = NULL
-    
-    # print("working")
-    
-      isolate.constraints <- propagate.isolatelinks(mystate$constraints$ilinks, mystate$W, mystate$vocab)
-    
-      expanded.constraints <- list(mlinks = append(isolate.constraints$mlinks, mystate$constraints$mlinks),
-                          clinks = append(isolate.constraints$clinks, mystate$constraints$clinks))
-    
-    
-#     return(expanded.constraints)
-    
-      # Compile constraints into Dirichlet Forest data structure
-      pc = process.pairwise(expanded.constraints, mystate$W, mystate$vocab)
-      
-    
-      if (!is.null(pc$conflicts)){
-        mystate$constraints$conflicts <- pc$conflicts
-        
-        return()
-      }
-        
-    
-    
-      # tree = list(root,leafmap)
-      tree = buildTree(pc$mlcc, pc$clcc, pc$allowable,
-                       mystate$W, mystate$beta, mystate$eta, mystate$dt)
-      
-#     return(tree)
-    
-      mystate$root = tree$root
-      mystate$leafmap = tree$leafmap
-    
-      mystate$dirty = FALSE
-  }
-
-  ldaalpha = matrix(mystate$alpha, nrow = 1, ncol=mystate$K)
-
-  lda = intLDA(mystate$docs, ldaalpha, mystate$root, mystate$leafmap,
-               mystate$numsamp, mystate$randseed,
-               mystate$zsamp, mystate$qsamp, mystate$f)
-  
-
-  #Update global state with the results
-  mystate$phi = t(lda$phi)
-  #Name rows and cols of phi
-  rownames(mystate$phi) <- mystate$vocab
-  colnames(mystate$phi) <- mystate$labels
-
-  #Name rows and cols of theta  
-  mystate$theta = lda$theta
-  rownames(mystate$theta) <- mystate$doc.names
-  colnames(mystate$theta) <- mystate$labels
-
-  mystate$zsamp = lda$zsamp
-  mystate$qsamp = lda$qsamp
-
-  #Compute topic proportion
-  total.topic <- sum(colSums(mystate$theta))
-  mystate$topic.proportion = colSums(mystate$theta) / total.topic
-  
-  #Compute document proportion
-  #total.terms <- sum(mystate$doc.term)
-  #add doc.proportion to ldastate
-  mystate$doc.proportion <- mystate$doc.term / mystate$N
-
-  # This is necessary for subsetting data upon selection in topicz.js
-
-  # compute the token-topic occurrence table:
-  mystate$phi.freq <- (mystate$phi / rowSums(mystate$phi)) * mystate$term.frequency
-  #mystate$theta.freq <- t(mystate$theta * mystate$doc.proportion * mystate$K)
-  mystate$theta.freq <- t(mystate$theta / mystate$D) * 100
-  
-  return(mystate)
-}
-
 lda.test <- function(){
-  require(gelatoViz)
+  require(ITM)
   require(Rcpp)
   require(inline)
-  require(gelato)
 
-  dt = Module("dt", getDynLib("gelatoViz"))
+  dt = Module("dt", getDynLib("ITM"))
   vocab = make.random.string(20,3)
     
   # """ Set up base data/parameter values """

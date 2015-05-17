@@ -475,18 +475,18 @@ function cluster_doc_on(d) {
     for (var i=0; i < clustDat.length; i++) {
 	Freq = Freq + clustDat[i]['Freq'];
     }
-    var Freq = Freq.toFixed(2); // round to one decimal place
+    var Freq = Freq.toFixed(3); // round to three decimal place
     
     // append a 'title' to bar chart with data relevant to the cluster of interest
     d3.select(".cluster-svg")
-	.append("text")
-	.attr("x", clswidth + 2*margin.left + topwidth/2)             
-	.attr("y", margin.top/2)
-	.attr("text-anchor", "middle")
-	.attr("class", "cluster-bubble-tool")     
-	.style("font-size", "16px") 
-	.style("text-decoration", "underline")  
-	.text(Freq + "% of the corpus comes from cluster " + cluster);
+    	.append("text")
+    	.attr("x", clswidth + 2*margin.left + topwidth/2)             
+    	.attr("y", margin.top/2)
+    	.attr("text-anchor", "middle")
+    	.attr("class", "cluster-bubble-tool")     
+    	.style("font-size", "16px") 
+    	.style("text-decoration", "underline")  
+    	.text(Freq + "% of the corpus comes from cluster " + cluster);
 
     // filter the bars according to the selected cluster
     var dat2 = topData.filter(function(d) { return d.Category == "Cluster"+cluster });
@@ -556,7 +556,7 @@ function document_on(d) {
 			.text(function(d) { return d.Freq; });
 
 	
-    var Freq = d.Freq.toFixed(2), documents = d.docs, cluster = d.cluster, docnames = d.docnames;
+    var Freq = d.Freq.toFixed(3), documents = d.docs, cluster = d.cluster, docnames = d.docnames;
 
     // remove the title with cluster proportion
     var text = d3.select(".cluster-bubble-tool");
@@ -564,14 +564,14 @@ function document_on(d) {
 
     // append text with info relevant to topic of interest
     d3.select(".cluster-svg")
-	.append("text")
-	.attr("x", clswidth + 2*margin.left + topwidth/2)             
-	.attr("y", margin.top/2)
-	.attr("text-anchor", "middle")
-	.attr("class", "cluster-bubble-tool")       // set class so we can remove it when highlight_off is called  
-	.style("font-size", "16px") 
-	.style("text-decoration", "underline")  
-	.text(Freq + "% of the corpus comes from document " + docnames);
+    	.append("text")
+    	.attr("x", clswidth + 2*margin.left + topwidth/2)             
+    	.attr("y", margin.top/2)
+    	.attr("text-anchor", "middle")
+    	.attr("class", "cluster-bubble-tool")       // set class so we can remove it when highlight_off is called  
+    	.style("font-size", "16px") 
+    	.style("text-decoration", "underline")  
+    	.text(Freq + "% of the corpus comes from document " + docnames);
 
     // grab the bar-chart data for this topic only:
     var dat2 = topData.filter(function(d) { return d.Category == "Document"+documents });

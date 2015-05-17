@@ -4,15 +4,15 @@
 # 
 # http://www.rstudio.com/shiny/
 #
-library(ITMViz)
+library(ITM)
 library(shiny)
-library(ggvis)
-library(googleCharts)
+# library(ggvis)
+# library(googleCharts)
 library(shinysky)
 # library(shinyIncubator)
 
  addResourcePath('assets', system.file('assets', package='ITMViz'))
-  addResourcePath('data', system.file('data', package='ITMViz'))
+#   addResourcePath('data', system.file('data', package='ITMViz'))
 
 # addResourcePath('www', system.file('www', package='ITMViz'))
 #addResourcePath('assets', normalizePath('ITMViz'))
@@ -51,8 +51,8 @@ K = 15
 alpha = 0.5
 beta = .1
 eta = 10000
-vocab=c()
-labels = c()
+vocab=list()
+labels = list()
 # eta = 1000
 
 # mystate <- ldaState(alpha = alpha, beta = beta, eta = eta, K = K)
@@ -81,24 +81,27 @@ hasConflicts = FALSE
 
 
 ui = shinyUI(navbarPage("ITMViz", id="itmviz", header=headerTag,
+
                         tabPanel("Existing Projects",
                            fluidPage(
-                             fluidRow(
-                               column(6, 
-                                  inputPanel(
-                                     numericInput('tc', 'Topic Count',  K, min = 1),
-                                     numericInput('alpha', 'Alpha',  alpha, min = 0),
-                                     numericInput('beta', 'Beta',  beta, min = 0),
-                                     numericInput('eta', 'Eta',  eta, min = 1)
-                                 )
-                               ),
-                               column(6, 
-                                 inputPanel(
-                                     numericInput('burnin', 'Number of Burn-ins', 0, min = 0),
-                                     numericInput('ns', 'Number of Samples',  numsamp, min = 1),
-                                     numericInput('sinterval', 'Sample Interval', 1, min = 1)
-                                 )
-                               )
+#                                 fluidRow(
+#                                  column(6,
+                             verticalLayout(
+                                    inputPanel(
+                                       numericInput('tc', 'Topic Count',  K, min = 1),
+                                       numericInput('alpha', 'Alpha',  alpha, min = 0),
+                                       numericInput('beta', 'Beta',  beta, min = 0),
+                                       numericInput('eta', 'Eta',  eta, min = 1)
+                                   )
+                                 ),
+#                                  column(6, 
+verticalLayout(
+                                   inputPanel(
+                                       numericInput('burnin', 'Number of Burn-ins', 0, min = 0),
+                                       numericInput('ns', 'Number of Samples',  numsamp, min = 1),
+                                       numericInput('sinterval', 'Sample Interval', 1, min = 1)
+                                   )
+                                 
                              ),
                              fluidRow(
                               
@@ -117,9 +120,6 @@ ui = shinyUI(navbarPage("ITMViz", id="itmviz", header=headerTag,
                               # absolutePanel(fixed = TRUE, draggable = TRUE,
                               #              top = 60, left = "auto", right = 20, bottom = "auto",
                               #              width = 330, height = "auto",
-                           conditionalPanel(
-                             condition = "input[ phi] == NULL",
-                           
                               inputPanel(
 #                                 selectInput("itm.distance", "Topical Distance Calculation", choices = c("Jensen-Shannon" = "JS",
 #                                                                                                         "Symmetric Kullback-Leibler" = "KL")),
@@ -133,7 +133,7 @@ ui = shinyUI(navbarPage("ITMViz", id="itmviz", header=headerTag,
                               #the el parameter in the js code selects the outputIds
                               mainPanel(HTML("<div id=\"mdsDat\" class=\"shiny-scatter-output\"><svg /></div>"))             
                               
-                           )
+                           
                               # )
                      ),
                   tabPanel("Topic Analysis", value=4,
@@ -153,7 +153,7 @@ ui = shinyUI(navbarPage("ITMViz", id="itmviz", header=headerTag,
                                                     min = 1,  max = 300,  value = 50),
 
                                         hr(),
-#                                         checkboxInput("setLabel", "Set Label", value = FALSE),
+                                        checkboxInput("setLabel", "Set Label", value = FALSE),
                                         conditionalPanel(
                                           condition = "input.setLabel == true",
                                           wellPanel(
@@ -203,10 +203,10 @@ ui = shinyUI(navbarPage("ITMViz", id="itmviz", header=headerTag,
                                  type="select",multiple=TRUE),
                             select2Input("selected.clinks","Cannot Link Constraints",
                                          choices=clinks,selected=clinks,
-                                         type="select",multiple=TRUE),
-                            select2Input("selected.ilinks","Isolate Constraints",
-                                         choices=ilinks,selected=ilinks,
                                          type="select",multiple=TRUE)
+#                             select2Input("selected.ilinks","Isolate Constraints",
+#                                          choices=ilinks,selected=ilinks,
+#                                          type="select",multiple=TRUE)
                             ),
                             busyIndicator("Calculation In progress",wait = 0),
                             actionButton("refitLDA","Re-Compute LDA") 

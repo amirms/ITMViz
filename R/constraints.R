@@ -258,7 +258,7 @@ buildTree <- function(mlcc,clcc, allowables,W, beta,eta, dt){
   #"""
   #Load libraries
   require(Rcpp)
-  require(gelatoViz)
+  require(ITM)
   require(inline)
   
   
@@ -520,11 +520,10 @@ print(length(wordmap))
 
 
 test.constraints <- function() {
-  require(gelatoViz)
   require(Rcpp)
   require(inline)
   
-  dt = Module("dt", getDynLib("gelatoViz"))
+  dt = Module("dt", getDynLib("ITM"))
   voc = c("a", "b", "c", "d", "e", "f")
 #   mlinks = list(c("a", "b", "c"), c("d", "e", "f"))
   #clinks = list(c("a", "f"))
