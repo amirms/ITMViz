@@ -11,13 +11,14 @@ library(MASS)
 library(proxy)
 library(plyr)
 library(reshape2)
-# library(ggvis)
+library(ggvis)
 library(dplyr)
-# library(googleCharts)
+library(googleCharts)
 # library(shinyIncubator)
 library(wordcloud)
 library(memoise)
-# library(googleVis)
+library(googleVis)
+# library(shinydashboard)
 library(ITM)
 
 palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
@@ -117,11 +118,9 @@ shinyServer(function(input, output, session) {
   })
   
   #Output for Topic Visualization
-  output$mdsDat <- reactive({
-    withProgress(message = 'Computing LDA',
-                 detail = 'This may take a while...', value = 0, {       
-                   compute_state()
-                 })
+  output$mdsDat <- reactive({   
+    compute_state()
+
     ##############################################################################
     ### Create a df with the info neccessary to make the default OR new bar chart when selecting a topic or cluster.
     ### This functionality requires that we keep track of the top input$itm.nTerms within each cluster and topic (as well as overall).
@@ -252,11 +251,8 @@ shinyServer(function(input, output, session) {
   
   
   #Clustering output
-  output$clsDat <- reactive({
-    withProgress(message = 'Computing LDA',
-                 detail = 'This may take a while...', value = 0, {       
-                   compute_state()
-                 })
+  output$clsDat <- reactive({ 
+    compute_state()
     ##############################################################################
     ### Create a df with the info neccessary to make the default OR new bar chart when selecting a topic or cluster.
     ### This functionality requires that we keep track of the top input$itm.nTerms within each cluster and topic (as well as overall).
@@ -482,26 +478,6 @@ addConstraint <- function(words, type) {
   
 }
 
-# output$constr.selection <- renderPrint({
-#   # Take a dependency on input$addConstr
-#   input$addConstr
-#   
-#   addConstraint(isolate(input$select2Input2), isolate(input$constr.type))
-#   
-#   # Use isolate() to avoid dependency on input$n
-#   isolate(mystate$constraints)
-#   
-# #   mystate$curIterations <- mystate$curIterations + 1
-#   
-# 
-# 
-# 
-# #   withProgress(message = 'Recomputing LDA', value = 0, {
-# #      fit.LDA(mystate)
-# #   })
-# 
-# })
-
 observe({
   if (input$addConstr == 0) 
     return()
@@ -516,8 +492,7 @@ observe({
   updateSelectInput(session, "selected.clinks", choices = clinks, selected =  clinks)
   
   #clear the select words input
-#   updateSelectInput(session, "selectWords",  selected = NULL)
-updateTextInput(session, "selectWords", value = " ")   
+  updateTextInput(session, "selectWords", value = " ")   
   
   #Set the dirty bit
   mystate$dirty <- TRUE
@@ -535,124 +510,94 @@ observe({
   if (input$refitLDA ==0)
     return()
   mystate$dirty <- TRUE
-#   output$constrConflicts <- renderText({
-#     #       print("reached here")
-#     ""
-#     
-#   })
-#   mystate$constraints$conflicts = NULL
   
-  updateMustLinkConstraints()
-  
+  updateMustLinkConstraints()  
   updateCannotLinkConstraints()
 
-  
-  print(mystate$constraints)
-  
-  # Create a Progress object
-#   progress <- shiny::Progress$new()
-#   progress$set(message = "Recomputing LDA", value = 0)
-#   # Close the progress when this reactive exits (even if there's an error)
-#   on.exit(progress$close())
-  
-#   withProgress(message = 'Recomputing LDA', value = 0, {
-withProgress(message = 'Recomputing LDA',
-             detail = 'This may take a while...', value = 0, {       
-            compute_state()
-       })
+#   print(mystate$constraints)
+     
+  compute_state(msg='Recomputing LDA')
   
 })
 
-# output$constrConflicts <- renderText({
-# #   print("reached here")
-#   unlist(lapply(mystate$constraints$conflicts, function(conflict) paste(conflict,collapse=" "))) #create dependency
-#   
-# })
 
 
 observe({
   if (input$fitLDA ==0)
     return()
 
-
-mystate$alpha <- input$alpha
-mystate$beta = input$beta
-mystate$eta = input$eta 
-mystate$K <- input$tc
-mystate$numsamp = input$ns
-mystate$randseed = 821945
-
-mystate$dirty <- TRUE
-
-withProgress(message = 'Computing LDA',
-             detail = 'This may take a while...', value = 0, {       
-               compute_state()
-             })
+  mystate$alpha <- input$alpha
+  mystate$beta = input$beta
+  mystate$eta = input$eta 
+  mystate$K <- input$tc
+  mystate$numsamp = input$ns
+  mystate$randseed = 821945
+  
+  mystate$dirty <- TRUE
+       
+  compute_state()
 })
 
 
-compute_state <- function(){
+compute_state <- function(msg = 'Computing LDA'){
   if (is.null(mystate$phi) | isTRUE(mystate$dirty)) {
+#     withProgress(message = msg,
+#                  detail = 'This may take a while...', value = 0, {     
     
-    fit.LDA(mystate)
-    print(mystate$labels)
-    updateSelectInput(session, "selectWords",  choices = as.list(mystate$vocab))
-    updateSelectInput(session, "topic.select",  choices = as.list(mystate$labels), selected = mystate$labels[1])
+    progress <- Progress$new(session)
+    progress$set(message = msg, detail = 'This may take a while...', value = 0.5)
+    
+    
+                   fit.LDA(mystate)
+                   
+                   if (is.null(mystate$constraints$conflicts)){
+                     print(mystate$labels)
+                     updateSelectInput(session, "selectWords",  choices = as.list(mystate$vocab))
+                     updateSelectInput(session, "topic.select",  choices = as.list(mystate$labels), selected = mystate$labels[1])
+                   }
+                   else {#there conflicts  
+                     updateTextInput(session, inputId= "constrConflicts", value=mystate$constraints$conflicts) 
+                     mystate$constraints$conflicts <- NULL
+                   }
+                   #                  })
+    progress$close()
 
   }
-  
 }
 
 observe({
   if (input$topic.updateLabel==0)
     return()
   
-  mystate$labels[which(mystate$labels==input$topic.select)] <- input$topic.label
+  new_label <- isolate(input$topic.label)
+  old_label <- isolate(input$topic.select)
+  
+  
+  mystate$labels[which(mystate$labels==old_label)] <- new_label
   
   updateSelectInput(session, "topic.select",  choices = mystate$labels, selected = input$topic.label)
 
   
 })
 
-
-# observe({
-#   if (input$openProj ==0)
-#     return()
-#  
-# #   K = 5
-#   #   alpha = 50 / K
-# 
-#   
-# })
-
-# Make the wordcloud drawing predictable during a session
 wordcloud_rep <- repeatable(wordcloud)
 
 output$topic.count.plot <- renderPlot({
-  withProgress(message = 'Computing LDA',
-               detail = 'This may take a while...', value = 0, {       
-                 compute_state()
-               })
-  #create a dependency on the update
+     
+  compute_state()
+
+  #create a dependency on the update button
+#   input$topic_update
+  
   top <- input$topic.select
   
   index <- which(mystate$labels == top)
-  
+
   wordcloud_rep(isolate(mystate$vocab), isolate(mystate$phi[,index]), scale=c(4,0.5),
                 max.words=input$topic.freq.max,
                 colors=brewer.pal(8, "Dark2"))
 })
 
-# output$topic.dist.plot <- renderPlot({
-#   top <- input$topic.select
-#   
-#   barplot(isolate(mystate$phi[,top])*100, 
-#          main=top,
-#          ylab="Weight %",
-#          xlab="Words")
-#   
-#   
-# })
 
 output$topicDistPlot <- renderGvis({
   #create a dependency on the update

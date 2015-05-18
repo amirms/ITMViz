@@ -6,12 +6,12 @@
 #
 library(ITM)
 library(shiny)
-# library(ggvis)
-# library(googleCharts)
+library(ggvis)
+library(googleCharts)
 library(shinysky)
 # library(shinyIncubator)
 
- addResourcePath('assets', system.file('assets', package='ITMViz'))
+#  addResourcePath('assets', system.file('assets', package='ITMViz'))
 #   addResourcePath('data', system.file('data', package='ITMViz'))
 
 # addResourcePath('www', system.file('www', package='ITMViz'))
@@ -79,10 +79,12 @@ ilinks <- c()
 hasConflicts = FALSE
 
 
-
-ui = shinyUI(navbarPage("ITMViz", id="itmviz", header=headerTag,
+ui = shinyUI( navbarPage("ITMViz", id="itmviz", header=headerTag,
 
                         tabPanel("Existing Projects",
+                                 tags$head(
+                                   tags$link(rel = 'stylesheet', type = 'text/css', href = 'assets/styles.css')
+                                 ),
                            fluidPage(
 #                                 fluidRow(
 #                                  column(6,
@@ -147,7 +149,8 @@ verticalLayout(
                            sidebarPanel(width = 3,
                                         selectInput("topic.select", "Choose a topic:", 
                                                     choices =  labels),
-#                                         actionButton("topic.update", "Update"),
+#                                         actionButton("topic_update", "Change"),
+                                        hr(),
                                         sliderInput("topic.freq.max", 
                                                     "Maximum Number of Words:", 
                                                     min = 1,  max = 300,  value = 50),
@@ -181,7 +184,7 @@ verticalLayout(
                                 selectInput("selectWords", "Input Words", choices= vocab, multiple=TRUE),
 #                                column(
                                  radioButtons("constr.type", label = "Type of Constraint",
-                                              choices = list("Must Link" = 1, "Cannot Link" = 2, "Isolate" = 3),
+                                              choices = list("Must Link" = 1, "Cannot Link" = 2),
                                               selected = 1),
 #                                ),
 #                                column(
@@ -194,8 +197,9 @@ verticalLayout(
 #                           verbatimTextOutput("constr.selection"),
 #                          mainPanel(
                             conditionalPanel(condition="hasConflicts == true",
-                                             h4("Conflicting Constraints"),
-                                             verbatimTextOutput(outputId = "constrConflicts")
+#                                              h4("Conflicting Constraints"),
+                                             textInput(inputId="constrConflicts", label="Conflicting Constraints", value = "")
+#                                              verbatimTextOutput(outputId = "constrConflicts")
                             ),
                            inputPanel(
                             select2Input("selected.mlinks","Must Link Constraints",
