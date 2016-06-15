@@ -1,5 +1,4 @@
-# library(gelato)
-library(tm)
+library(inline)
 library(Rcpp)
 library(inline)
 library(ITM)
@@ -166,10 +165,18 @@ fit.LDA <- function(mystate) {
     
     isolate.constraints <- propagate.isolatelinks(mystate$constraints$ilinks, mystate$W, mystate$vocab)
     
+    
+    
     expanded.constraints <- list(mlinks = append(isolate.constraints$mlinks, mystate$constraints$mlinks),
                                  clinks = append(isolate.constraints$clinks, mystate$constraints$clinks))
     
-    
+#     print(mystate$constraints$mlinks)
+#     if (length(mystate$constraints$mlinks) > 0) {
+#       print(expanded.constraints)
+#       
+#       stop("aasas")
+#     }
+#     
     #     return(expanded.constraints)
     
     # Compile constraints into Dirichlet Forest data structure

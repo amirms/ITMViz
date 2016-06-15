@@ -11,8 +11,8 @@ library(MASS)
 library(proxy)
 library(plyr)
 library(reshape2)
-library(ggvis)
-library(dplyr)
+# library(ggvis)
+# library(dplyr)
 library(googleCharts)
 # library(shinyIncubator)
 library(wordcloud)
@@ -20,6 +20,8 @@ library(memoise)
 library(googleVis)
 # library(shinydashboard)
 library(ITM)
+library(inline)
+library(ITMViz)
 
 palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
           "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
@@ -118,9 +120,8 @@ shinyServer(function(input, output, session) {
   })
   
   #Output for Topic Visualization
-  output$mdsDat <- reactive({   
+  output$mdsDat <- reactive({  
     compute_state()
-
     ##############################################################################
     ### Create a df with the info neccessary to make the default OR new bar chart when selecting a topic or cluster.
     ### This functionality requires that we keep track of the top input$itm.nTerms within each cluster and topic (as well as overall).
@@ -513,6 +514,10 @@ observe({
   
   updateMustLinkConstraints()  
   updateCannotLinkConstraints()
+  
+  print(mystate$constraints$clinks)
+  print(mystate$constraints$mlinks)
+
 
 #   print(mystate$constraints)
      
@@ -541,11 +546,11 @@ observe({
 
 compute_state <- function(msg = 'Computing LDA'){
   if (is.null(mystate$phi) | isTRUE(mystate$dirty)) {
-#     withProgress(message = msg,
-#                  detail = 'This may take a while...', value = 0, {     
+    withProgress(message = msg,
+                 detail = 'This may take a while...', value = 0, {     
     
-    progress <- Progress$new(session)
-    progress$set(message = msg, detail = 'This may take a while...', value = 0.5)
+#     progress <- Progress$new(session)
+#     progress$set(message = msg, detail = 'This may take a while...', value = 0.5)
     
     
                    fit.LDA(mystate)
@@ -559,8 +564,10 @@ compute_state <- function(msg = 'Computing LDA'){
                      updateTextInput(session, inputId= "constrConflicts", value=mystate$constraints$conflicts) 
                      mystate$constraints$conflicts <- NULL
                    }
-                   #                  })
-    progress$close()
+                                               
+                   
+                   })
+#     progress$close()
 
   }
 }

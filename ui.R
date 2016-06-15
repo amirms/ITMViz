@@ -6,46 +6,10 @@
 #
 library(ITM)
 library(shiny)
-library(ggvis)
 library(googleCharts)
 library(shinysky)
-# library(shinyIncubator)
-
-#  addResourcePath('assets', system.file('assets', package='ITMViz'))
-#   addResourcePath('data', system.file('data', package='ITMViz'))
-
-# addResourcePath('www', system.file('www', package='ITMViz'))
-#addResourcePath('assets', normalizePath('ITMViz'))
-
-
-
-
 
 hasConflicts = FALSE
-
-#source("chooser.R")
-
-#scatterDiv <- function (outputId) {
-#  HTML(paste0("<div id=\"", outputId, "\" class=\"shiny-scatter-output\"><svg /></div>"))
-#}
-# Thanks Winston! https://github.com/wch/testapp/blob/master/custom-style/ui.R
-# widget_style <-
-#   "display: inline-block;
-# vertical-align: text-top;
-# padding: 7px;
-# border: solid;
-# border-width: 1px;
-# border-radius: 4px;
-# border-color: #CCC;"
-# side_margins <-
-#   "margin-right:50px;
-# margin-left:50px;"
-# #ugly hack to line up the documents below the scatterplot
-# top_margin <-
-#   "margin-top:-550px;"
-
-
-
 K = 15
 #   alpha = 50 / K
 alpha = 0.5
@@ -53,10 +17,6 @@ beta = .1
 eta = 10000
 vocab=list()
 labels = list()
-# eta = 1000
-
-# mystate <- ldaState(alpha = alpha, beta = beta, eta = eta, K = K)
-
 prname= "jedit-5.1.0"
 min.tfidf = 25
 numsamp =50
@@ -82,9 +42,8 @@ hasConflicts = FALSE
 ui = shinyUI( navbarPage("ITMViz", id="itmviz", header=headerTag,
 
                         tabPanel("Existing Projects",
-                                 tags$head(
-                                   tags$link(rel = 'stylesheet', type = 'text/css', href = 'assets/styles.css')
-                                 ),
+                                 tags$link(rel = 'stylesheet', type = 'text/css', href = 'assets/styles.css'),
+#                                  progressInit(),
                            fluidPage(
 #                                 fluidRow(
 #                                  column(6,
@@ -115,6 +74,7 @@ verticalLayout(
                               tags$head(
                                 tags$script(src = "assets/d3.v3.js"),
                                 tags$script(src ="assets/topicz.js"),
+                                tags$link(rel = 'stylesheet', type = 'text/css', href = 'assets/styles.css'),
                                 tags$link(rel = 'stylesheet', type = 'text/css', href = 'assets/topicz.css')
                               ),
                            busyIndicator(wait = 1000),
