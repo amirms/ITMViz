@@ -1,4 +1,5 @@
 # ITMViz
+
 Interactive Topic Modeling for Source Code Analysis
 
 The ITMViz toolkit is a web-based application developed using the Shiny package in R combined with the D3 visualization library. 
@@ -11,3 +12,7 @@ See our paper, which was presented at the 23rd International Conference on Progr
 ## Screencast
 
 The screencast is available here: http://youtu.be/Is4ywW5oiUI
+
+## Running Example
+
+There is a running example at: https://gelato.shinyapps.io/ITMViz/
